@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+ <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css">
+</head>
+<style type="text/css">
+.books-height
+{
+  margin-bottom: 10px;
+}
+.books-right-side{
+  min-height: 569px;
+}
+/* enable absolute positioning */
+.inner-addon { 
+    position: relative; 
+}
+
+/* style icon */
+.inner-addon .glyphicon {
+  position: absolute;
+  padding: 10px;
+  pointer-events: none;
+}
+
+/* align icon */
+.left-addon .glyphicon  { left:  0px;}
+.right-addon .glyphicon { right: 0px;}
+
+/* add padding  */
+.left-addon input  { padding-left:  30px; }
+.right-addon input { padding-right: 30px; }
+.left{float: left}
+.right{float: right}
+.right-bookmark{padding-left: 10px;}
+.bold{  font-weight: bold;}
+.book_detail ul li{list-style: none;}
+.booklinkcolor{background-color:rgb(191, 218, 232)}
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+</style>
+<body>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+<script >
+$(document).ready(function(){
+
+        var url="https://capillary.0x10.info/api/books?type=json&query=list_books";
+ $('.backbook').prop('disabled', true);
+        //fatch json value
+        $.getJSON(url , function(result){
+            $.each(result, function(i, field){
+             for(i=0;i<field.length;i++)
+             {
+              $("#test").append("<div class='well well-sm books-height pricebook'><a href='#' data-num='"+i+"' class='fatchdesc'>"+field[i].name + "</a><span class='right price'>"+field[i].price+"</span><input type='hidden' class ='bookrating' value="+field[i].rating+"></div>");
+            
+             }
+             var splashArray = new Array();
+             for(j=0;j<field[0].rating;j++)
+              splashArray.push("<i class='fa fa-heart'></i>");
+             var rating_string=splashArray.join(", ");
+             var rating=rating_string.replace(/,/g , "");
+             $("#test-right").append("<div class='col-sm-5'><img src='"+field[0].image +"' style='width:230px;height:250px;'/></div><div class='col-sm-7 bold'><div class='book_detail'><ul><li>Publisher : "+field[0].details.Publisher+ "</li><li>ISBN : "+field[0].details.ISBN+"</li><li>Binding : "+field[0].details.Binding+"</li><li>Rating :"+rating+" </li></ul></div>");
+
+              $("#test-desc").append("<div class='bg-warning'>"+field[0].description +"</div><div class='panel panel-default'><div class='panel-body'><button type='button' data-book='"+0+"' class='btn btn-default savebookmark'><i class='fa fa-bookmark'></i>  BookMark</button></div></div>");
+             $("#totbook").append("<span>"+field.length+"</span>");
+               
+            });
+//fatch description
+          $(".fatchdesc").data("num",result['data-num']);
+
+           $(document).on("click", ".fatchdesc" ,function () {
+             $('.pricebook').removeClass('booklinkcolor');
+             $(this).parent().addClass("booklinkcolor");
+             $("#test-right").empty();
+             $("#test-desc").empty();
+             bvalue=$(this).data("num");
+              bookvalue=result.books[bvalue];
+             // console.log(bvalue);
+               var splashArray = new Array();
+               for(j=0;j<bookvalue.rating;j++)
+                splashArray.push("<i class='fa fa-heart'></i>");
+               var rating_string=splashArray.join(", ");
+               var rating=rating_string.replace(/,/g , "");
+               $("#test-right").append("<div class='col-sm-5'><img src='"+bookvalue.image +"' style='width:230px;height:250px;'/></div><div class='col-sm-7 bold'><div class='book_detail'><ul><li>Publisher : "+bookvalue.details.Publisher+ "</li><li>ISBN : "+bookvalue.details.ISBN+"</li><li>Binding : "+bookvalue.details.Binding+"</li><li>Rating :"+rating+" </li></ul></div>");
+
+                $("#test-desc").append("<div class='bg-warning '>"+bookvalue.description +"</div><div class='panel panel-default'><div class='panel-body'><button type='button' data-book='"+bookvalue.id+"' class='btn btn-default savebookmark'><i class='fa fa-bookmark'></i>  BookMark</button></div></div>");                  
+            
+          });
+
+//book mark count
+           var book_value = [];
+            var bookstr = {}
+             
+              bookmark = localStorage.getItem("book-marks");
+              bookmarks=jQuery.parseJSON(bookmark);
+              console.log(bookmark);
+              if(bookmarks!=null){
+              var booklen=bookmarks.length;
+              $("#totbookmarks").html(booklen); 
+            }
+            
+ //add bookmark          
+            $(document).on("click", ".savebookmark", function () {
+
+              numbook=$(this).attr("data-book");
+              book_value.push(result.books[numbook]);
+              bookstr=JSON.stringify(book_value);
+              console.log(bookstr);
+              bookstr = bookstr.concat(bookmark);
+              
+              var bookstr = bookstr.replace("][", ",");
+              console.log(bookstr);
+              localStorage.setItem("book-marks",bookstr);
+               bookmarks = localStorage.getItem("book-marks");
+              bookmarks=jQuery.parseJSON(bookmarks);
+              booklen=bookmarks.length;
+            $("#totbookmarks").html(booklen);
+          });
+            
+              
+//list of book mark 
+     
+      $(document).on("click", ".listbookmarks", function () {
+          bookmarks = localStorage.getItem("book-marks");
+        $('.backbook').prop('disabled', false);
+        $("#test").empty();
+        bookmarks=jQuery.parseJSON(bookmarks);
+        console.log(bookmarks);
+        if(bookmarks==null)
+        {
+          confirm("Bookmarks is empty.please reload the page?");
+          window.location.reload();
+        }
+        console.log(bookmarks);
+        for(j=0;j<bookmarks.length;j++){
+           $("#test").append("<div class='well well-sm books-height pricebook'><a href='#' data-num='"+j+"' class='fatchdesc'>"+bookmarks[j].name + "</a><span class='right price'>"+bookmarks[j].price+"</span><input type='hidden' class ='bookrating' value="+bookmarks[j].rating+"></div>");
+
+        }
+        
+        
+      });        
+            
+          
+      });
+ $(document).on("click", ".backbook", function () {
+  window.location.reload();
+ });
+
+  //search by name
+        $("#search_book").keyup(function(){
+        var search_book = $(this).val(), count = 0;
+        
+        $("#test div").each(function(){
+          
+         if ($(this).text().search(new RegExp(search_book, "i")) < 0) {
+         
+                $(this).fadeOut();
+            } else {
+                $(this).show();
+                count++;
+            }
+        });
+ 
+      });
+        //price shorting
+      var ascending = false;
+      $('input[name="totalbooks"]').on('change', function(){
+      if($(this).val()=='price')
+      {
+            var sorted = $('.pricebook').sort(function(a,b){
+
+               return (ascending ==
+               (convertToNumber($(a).find('.price').html()) < 
+                convertToNumber($(b).find('.price').html()))) ? 1 : -1;
+        });
+     
+        
+      }
+       //rating shorting bookrating
+       else{
+        
+        var sorted = $('.pricebook').sort(function(a,b){
+
+               return (ascending ==
+               (convertToNumber($(a).find('.bookrating').val()) < 
+                convertToNumber($(b).find('.bookrating').val()))) ? 1 : -1;
+        });
+
+       }
+       ascending = ascending ? false : true;
+
+            $('#test').html(sorted);
+
+      });
+        
+      var convertToNumber = function(value){
+       if(value.indexOf('₹') != -1) 
+         return parseFloat(value.replace('₹',''));
+        else
+        return parseFloat(value);   
+      }
+     
+
+
+       
+});
+
+ 
+</script>
+
+<div class="container-fluid">
+
+<div class="row jumbotron">
+  <div class="col-sm-12 panel-heading">
+   <div class="col-sm-6"><h4>Searching books made easy!</h4></div>
+   <div class="col-sm-6 panel-body label label-success">
+    <span class="col-sm-6" id='totbook'>Total Books:</span>
+    <span class="col-sm-6">Total Bookmarks:<span id='totbookmarks'></span></span>
+   </div>
+ </div>
+ <div class="panel-body">
+
+    <div class="col-sm-6 well well-lg" >
+    <div class="col-sm-12 panel-body">
+    <div class="col-sm-6">
+              <div class="inner-addon left-addon">
+          <i class="glyphicon glyphicon-search"></i>
+          <input type="text" class="form-control" placeholder="Search( by name)" id="search_book"/>
+        </div>
+    </div>
+    <div class="col-sm-6 "><i class="fa fa-bookmark "></i><button type="button" class="btn btn-link listbookmarks">List BookMarks</button><i class="icon-arrow-left"></i><button type="button" class="btn btn-link backbook">Back</button></div>
+     </div>
+    <div class="col-sm-12 well well-lg" id="test">
+    </div>
+
+    <div class="col-sm-12">
+    <div class="col-sm-5 "><div class="pull-left" ><i class="fa fa-sort"></i>  Sort By  </div></div>
+    <div class="col-sm-7 ">
+   
+     <label class="radio-inline">
+     <input type="radio" name="totalbooks" value="rating" > Rating</label>
+     <label class="radio-inline"><input type="radio" name="totalbooks" value="price" >Price</label>
+
+    </div>
+    </div>
+       
+    </div>
+    <div class="col-sm-6 well books-right-side"  >
+      <div class="panel panel-primary" >
+        <div class="panel-heading">Details</div>
+        <div class="panel-body" id="test-right">
+         
+        </div>
+       
+      </div>
+      <div class="container text-center well">
+        <div class="panel panel-primary" >
+      <div class="panel-heading" >Description</div>
+       <div class="panel-body"id="test-desc">
+          
+        </div>
+      </div>
+
+      
+        <div class="col-sm-4"> </div>
+         <div class="col-sm-4"> </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+</body>
+</html>
